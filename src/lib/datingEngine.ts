@@ -159,7 +159,7 @@ export function generateScriptedDate(a: AgentProfile, b: AgentProfile): DateResu
       turnIndex: 1,
       speakerId: a.id,
       speakerName: a.name,
-      dialogue: `Hey ${b.name}. Glad we could grab this corner table. I was actually just reading about your work around ${b.interests[0]?.text.toLowerCase() || 'systems'}—how do you switch off your brain after a week like that?`,
+      dialogue: `Hey ${b.name}. Glad we could grab this corner table. I was actually just reading about your work around ${b.interests[0]?.text.toLowerCase() || 'systems'}. How do you switch off your brain after a week like that?`,
       innerThought: `They look relaxed, not stiff. Good eye contact. Let's see if they talk like a corporate brochure or a real human being.`,
       topic: 'Icebreaker & First Impressions',
       cumulativeScore: (runningScore = Math.max(20, Math.min(99, Math.round(runningScore + totalChange * deltaFactors[0].factor)))),
@@ -170,7 +170,7 @@ export function generateScriptedDate(a: AgentProfile, b: AgentProfile): DateResu
       turnIndex: 2,
       speakerId: b.id,
       speakerName: b.name,
-      dialogue: `Honestly, usually with ${b.hobbies[0]?.text.toLowerCase() || 'solitude'} and a strong espresso. If I don't carve out that physical silence, everything turns into noise. What about you—does your Saturday have a structure, or is it pure chaos?`,
+      dialogue: `Honestly, usually with ${b.hobbies[0]?.text.toLowerCase() || 'solitude'} and a strong espresso. If I don't carve out that physical silence, everything turns into noise. What about you? Does your Saturday have a structure, or is it pure chaos?`,
       innerThought: `Direct opener without generic small talk. I like that they know what I actually care about.`,
       topic: 'Weekend Cadence & Daily Rhythm',
       cumulativeScore: (runningScore = Math.max(20, Math.min(99, Math.round(runningScore + totalChange * deltaFactors[1].factor)))),
@@ -225,7 +225,7 @@ export function generateScriptedDate(a: AgentProfile, b: AgentProfile): DateResu
       turnIndex: 7,
       speakerId: a.id,
       speakerName: a.name,
-      dialogue: `Where I think we might clash is pacing—my style is ${a.communicationStyle.toLowerCase()}, and I can get completely consumed when I'm in flow. You'd have to call me out if I drift too far into my own orbit.`,
+      dialogue: `Where I think we might clash is pacing. My style is ${a.communicationStyle.toLowerCase()}, and I can get completely consumed when I'm in flow. You'd have to call me out if I drift too far into my own orbit.`,
       innerThought: `Admitting a flaw early to see how they handle realistic friction.`,
       topic: 'Potential Clashes & Friction',
       cumulativeScore: (runningScore = Math.max(20, Math.min(99, Math.round(runningScore + totalChange * deltaFactors[6].factor)))),
@@ -237,7 +237,7 @@ export function generateScriptedDate(a: AgentProfile, b: AgentProfile): DateResu
       speakerId: b.id,
       speakerName: b.name,
       dialogue: comp.againB
-        ? `Don't worry, I have zero hesitation calling things out. But this was genuinely refreshing, ${a.name}. Let's do this again soon—next time somewhere with better wine.`
+        ? `Don't worry, I have zero hesitation calling things out. But this was genuinely refreshing, ${a.name}. Let's do this again soon. Next time somewhere with better wine.`
         : `I appreciate the directness, ${a.name}. While I think we operate on slightly different life wavelengths long-term, I really enjoyed this conversation tonight.`,
       innerThought: comp.againB
         ? `I definitely want to see them again without our agent proxies. High compatibility.`

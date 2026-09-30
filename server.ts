@@ -9,6 +9,9 @@ import { analyzePerson } from './server/analyze';
 import { runDate } from './server/date';
 import { llmAvailable, llmProvider } from './server/llm';
 
+import { SEED_PROFILES } from './src/data/seedProfiles';
+import precomputedDates from './data/dates.json';
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,21 +20,61 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 
-const readJSON = <T,>(f: string, d: T): T => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
-const demoProfiles = () => readJSON<AgentProfile[]>('data/profiles.json', []);
-const demoDates = () => readJSON<Record<string, any>>('data/dates.json', {});
+app.use((req, _res, next) => {
+  const matched = (req.headers['x-matched-path'] || req.headers['x-now-route-matches']) as string;
+  if (matched && typeof matched === 'string' && matched.startsWith('/api')) {
+    req.url = matched;
+  }
+  next();
+});
+
+const resolveDataFile = (f: string) => {
+  const candidates = [
+    path.resolve(process.cwd(), f),
+    path.resolve(__dirname, f),
+    path.resolve(__dirname, '..', f),
+    path.resolve('/var/task', f),
+    path.resolve('/var/task/data', path.basename(f)),
+    f,
+  ];
+  for (const c of candidates) {
+    try { if (fs.existsSync(c)) return c; } catch {}
+  }
+  return path.resolve(process.cwd(), f);
+};
+
+const readJSON = <T,>(f: string, d: T): T => {
+  try {
+    const full = resolveDataFile(f);
+    if (fs.existsSync(full)) return JSON.parse(fs.readFileSync(full, 'utf8'));
+    return d;
+  } catch {
+    return d;
+  }
+};
+
+const demoProfiles = () => {
+  const list = readJSON<AgentProfile[]>('data/profiles.json', []);
+  return list && list.length > 0 ? list : SEED_PROFILES;
+};
+
+const demoDates = () => {
+  const dates = readJSON<Record<string, any>>('data/dates.json', {});
+  return dates && Object.keys(dates).length > 0 ? dates : precomputedDates;
+};
+
 let customProfiles: AgentProfile[] = readJSON('data/custom-profiles.json', []);
-const saveCustom = () => { try { fs.writeFileSync('data/custom-profiles.json', JSON.stringify(customProfiles, null, 1)); } catch { } };
+const saveCustom = () => { try { fs.writeFileSync(resolveDataFile('data/custom-profiles.json'), JSON.stringify(customProfiles, null, 1)); } catch { } };
 const allProfiles = () => [...customProfiles, ...demoProfiles()];
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, llm: llmProvider(), profiles: allProfiles().length }));
+app.get(['/api/health', '/health'], (_req, res) => res.json({ ok: true, llm: llmProvider(), profiles: allProfiles().length }));
 app.use('/img', express.static(path.resolve('data/img')));
 
-app.get('/api/profiles', (_req, res) => res.json({ profiles: allProfiles() }));
-app.get('/api/dates', (_req, res) => res.json({ dates: demoDates() }));
-app.get('/api/demo', (_req, res) => res.json({ profiles: demoProfiles(), dates: demoDates() }));
+app.get(['/api/profiles', '/profiles'], (_req, res) => res.json({ profiles: allProfiles() }));
+app.get(['/api/dates', '/dates'], (_req, res) => res.json({ dates: demoDates() }));
+app.get(['/api/demo', '/demo', '/api'], (_req, res) => res.json({ profiles: demoProfiles(), dates: demoDates() }));
 
-app.post('/api/ingest', async (req, res) => {
+app.post(['/api/ingest', '/ingest'], async (req, res) => {
   try {
     const { name, linkedinUrl, instagramUrl } = req.body || {};
     if (!linkedinUrl || !instagramUrl) return res.status(400).json({ error: 'Both a LinkedIn and an Instagram URL are required.' });
@@ -55,14 +98,16 @@ app.post('/api/ingest', async (req, res) => {
   }
 });
 
-app.post('/api/date/stream', async (req, res) => {
+app.post(['/api/date/stream', '/date/stream'], async (req, res) => {
   const { agentAId, agentBId } = req.body || {};
   const A = allProfiles().find((p) => p.id === agentAId), B = allProfiles().find((p) => p.id === agentBId);
   if (!A || !B) return res.status(404).json({ error: 'Unknown agent id' });
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
   const send = (event: string, data: any) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   try {
-    const cached = demoDates().find((d: DateResult) => (d.agentAId === A.id && d.agentBId === B.id) || (d.agentAId === B.id && d.agentBId === A.id));
+    const allDates = demoDates() as Record<string, any>;
+    const pairKey = [A.id, B.id].sort().join('___');
+    const cached = allDates[pairKey] || Object.values(allDates).find((d: any) => (d.agentAId === A.id && d.agentBId === B.id) || (d.agentAId === B.id && d.agentBId === A.id));
     const result = cached && req.body.useCache ? cached : await runDate(A, B, (t) => send('turn', t));
     if (cached && req.body.useCache) for (const t of cached.turns) send('turn', t);
     send('done', result);
@@ -70,7 +115,7 @@ app.post('/api/date/stream', async (req, res) => {
   res.end();
 });
 
-app.post('/api/date', async (req, res) => {
+app.post(['/api/date', '/date'], async (req, res) => {
   try {
     const { agentA, agentB } = req.body;
     if (!agentA || !agentB) return res.status(400).json({ error: 'Both agent profiles are required.' });

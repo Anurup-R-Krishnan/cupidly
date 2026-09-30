@@ -13,6 +13,8 @@ dist-ssr/
 build/
 out/
 server.js
+api/*.js
+api/*.cjs
 *.tsbuildinfo
 .codegraph/
 
@@ -110,3 +112,4 @@ desktop.ini
 data/raw/
 data/img/
 data/custom-profiles.json
+.vercel

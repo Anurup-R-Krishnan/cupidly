@@ -33,7 +33,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 sm:px-8 py-4 sm:py-5 border-b-2 border-white/10 bg-[#2b147d] gap-3">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="font-heading font-black text-xs sm:text-sm uppercase tracking-wide text-[#00fcfd]">
-              Profile Page · What the Agent Found
+              Candidate Dossier · Extracted Facts
             </span>
             <span className="text-[11px] font-bold text-[#361a96] bg-[#ff7dec] px-2.5 py-0.5 rounded-full shrink-0">
               2 Public Sources
@@ -127,8 +127,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
           {}
           <div className="bg-white/10 px-5 py-3 rounded-full flex items-center justify-between text-xs text-[#00fcfd] font-bold">
-            <span>Only two sources were used: their public LinkedIn and their public Instagram.</span>
-            <span className="hidden sm:inline text-white/70">Nothing else.</span>
+            <span>Grounded strictly in public LinkedIn and Instagram.</span>
+            <span className="hidden sm:inline text-white/70">Zero hallucinated claims.</span>
           </div>
 
           {}
@@ -276,7 +276,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               className="flex-1 sm:flex-none px-6 py-3 rounded-full text-xs font-black uppercase text-white bg-white/15 hover:bg-white/25 transition-all flex items-center justify-center gap-2"
             >
               <Award className="w-4 h-4 text-[#00fcfd]" />
-              <span>Who Fits Them Best</span>
+              <span>Best Matches</span>
             </button>
             <button
               onClick={() => {
@@ -286,7 +286,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               className="flex-1 sm:flex-none px-8 py-3 rounded-full text-xs font-black uppercase text-[#361a96] bg-[#00fcfd] hover:bg-[#33fdfe] transition-all flex items-center justify-center gap-2 shadow-lg"
             >
               <Flame className="w-4 h-4 fill-current" />
-              <span>Watch Them Date</span>
+              <span>Start Date</span>
             </button>
           </div>
         </div>

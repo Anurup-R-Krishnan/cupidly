@@ -281,9 +281,9 @@ export const RankingsMatrix: React.FC<RankingsMatrixProps> = ({
                 <th className="py-4 px-6">Rank</th>
                 <th className="py-4 px-6">Candidate</th>
                 <th className="py-4 px-6">Archetype</th>
-                <th className="py-4 px-6 text-center">Score</th>
-                <th className="py-4 px-6 text-center">Balance</th>
-                <th className="py-4 px-6">Consensus</th>
+                <th className="py-4 px-6 text-center">Fit Score</th>
+                <th className="py-4 px-6 text-center">Scores (You / Them)</th>
+                <th className="py-4 px-6">Verdict</th>
                 <th className="py-4 px-6">Why It Worked</th>
                 <th className="py-4 px-6 text-right">Watch Date</th>
               </tr>
@@ -347,7 +347,7 @@ export const RankingsMatrix: React.FC<RankingsMatrixProps> = ({
                     {r.againConsensus === 'both_yes' ? (
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#361a96] bg-[#00fcfd]/40 px-3 py-1 rounded-full whitespace-nowrap">
                         <CheckCircle className="w-3.5 h-3.5" />
-                        <span>Both Said Yes</span>
+                        <span>Mutual Yes</span>
                       </span>
                     ) : r.againConsensus === 'one_sided' ? (
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#361a96] bg-[#ff7dec]/50 px-3 py-1 rounded-full whitespace-nowrap">

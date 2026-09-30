@@ -45,10 +45,10 @@ export const AvatarMeetingAnimation: React.FC<AvatarMeetingAnimationProps> = ({
         {}
         {phase !== 'swiping' && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="absolute -top-12 -left-16 text-2xl animate-particle-1">❤️</span>
-            <span className="absolute -bottom-10 -right-20 text-2xl animate-particle-2">⚡</span>
-            <span className="absolute -top-16 right-12 text-2xl animate-particle-3">🍸</span>
-            <span className="absolute bottom-8 left-14 text-2xl animate-particle-1">✨</span>
+            <Heart className="absolute -top-12 -left-16 w-8 h-8 text-[#ff7dec] animate-particle-1 fill-current" />
+            <Zap className="absolute -bottom-10 -right-20 w-8 h-8 text-[#00fcfd] animate-particle-2 fill-current" />
+            <Wine className="absolute -top-16 right-12 w-8 h-8 text-[#00fcfd] animate-particle-3" />
+            <Sparkles className="absolute bottom-8 left-14 w-8 h-8 text-[#ff7dec] animate-particle-1 fill-current" />
           </div>
         )}
       </div>
@@ -59,17 +59,17 @@ export const AvatarMeetingAnimation: React.FC<AvatarMeetingAnimationProps> = ({
           <Zap className="w-3.5 h-3.5 fill-current" />
           <span>
             {phase === 'swiping'
-              ? 'Agents Ingesting & Swiping...'
+              ? 'Agents Finding Each Other...'
               : phase === 'colliding'
-              ? "It's a Match! Avatars Meeting..."
-              : 'Commencing Automated Date'}
+              ? "It's a Match! Meeting at the Bar..."
+              : 'Sitting Down for Drinks'}
           </span>
         </div>
         <h3 className="font-heading font-black text-3xl sm:text-5xl text-white tracking-tight">
-          {phase === 'connected' ? 'Date in Session' : 'Autonomous Matchup'}
+          {phase === 'connected' ? 'Date in Session' : 'First Impressions'}
         </h3>
         <p className="text-xs sm:text-sm text-white/80 max-w-lg mx-auto font-medium">
-          Their LinkedIn + Instagram profiles have been analyzed. Their agents are now sitting down face-to-face.
+          Their public LinkedIn and Instagram profiles are verified. Their agents are sitting down face-to-face.
         </p>
       </div>
 
@@ -126,7 +126,7 @@ export const AvatarMeetingAnimation: React.FC<AvatarMeetingAnimationProps> = ({
           </div>
 
           <span className="text-[10px] font-black uppercase tracking-wider text-white/80 mt-2 whitespace-nowrap">
-            {phase === 'connected' ? 'Seated at Bar' : 'Chemistry Pulse'}
+            {phase === 'connected' ? 'Seated at Bar' : 'First Impression'}
           </span>
         </div>
 

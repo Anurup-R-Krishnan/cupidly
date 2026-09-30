@@ -17,20 +17,22 @@ import {
   Heart,
 } from 'lucide-react';
 
+import { SEED_PROFILES } from './data/seedProfiles';
+
 export default function App() {
-  const [profiles, setProfiles] = useState<AgentProfile[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [profiles, setProfiles] = useState<AgentProfile[]>(SEED_PROFILES);
+  const [loaded, setLoaded] = useState(true);
   const [activeTab, setActiveTab] = useState<'roster' | 'date' | 'rankings' | 'ingest' | 'dossier'>('roster');
   const [selectedProfile, setSelectedProfile] = useState<AgentProfile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'founders' | 'researchers' | 'builders'>('all');
 
   const [datePair, setDatePair] = useState<{ agentAId: string; agentBId: string }>({
-    agentAId: '',
-    agentBId: '',
+    agentAId: SEED_PROFILES[0]?.id || '',
+    agentBId: SEED_PROFILES[1]?.id || '',
   });
 
-  const [rankingTargetId, setRankingTargetId] = useState<string>('');
+  const [rankingTargetId, setRankingTargetId] = useState<string>(SEED_PROFILES[0]?.id || '');
 
   useEffect(() => {
     fetch('/api/demo')
@@ -41,7 +43,6 @@ export default function App() {
       .then((data) => {
         if (data?.profiles && Array.isArray(data.profiles) && data.profiles.length > 0) {
           (data.dates || []).forEach(cacheDateResult);
-          setLoaded(true);
           setProfiles(data.profiles);
           setDatePair((prev) => ({
             agentAId: prev.agentAId || data.profiles[0]?.id || '',
@@ -148,7 +149,7 @@ export default function App() {
               <div className="relative z-10 space-y-5 max-w-3xl">
                 <div className="inline-flex items-center gap-2 text-xs font-black uppercase text-[#361a96] bg-[#00fcfd] px-4 py-1.5 rounded-full">
                   <Heart className="w-4 h-4 fill-current" />
-                  <span>Agent Dating</span>
+                  <span>Autonomous Dating</span>
                 </div>
 
                 <h1 className="text-3xl sm:text-6xl md:text-7xl font-heading font-black tracking-tight text-white leading-tight break-words">
@@ -156,7 +157,7 @@ export default function App() {
                 </h1>
 
                 <p className="text-sm sm:text-base text-white/90 leading-relaxed font-medium max-w-2xl break-words">
-                  Two public links: LinkedIn and Instagram. Your agent reads both, goes on dates on your behalf, and figures out who is actually worth your time.
+                  Paste your LinkedIn and Instagram. Your agent reads both, goes on simulated first dates, and tells you who you&apos;d actually like.
                 </p>
 
                 {}
@@ -273,7 +274,7 @@ export default function App() {
 
             {filteredProfiles.length === 0 && (
               <div className="text-center py-20 space-y-3 bg-white border-4 border-[#361a96] rounded-[48px]">
-                <p className="text-sm font-bold text-[#361a96]">Nobody found matching &ldquo;{searchQuery}&rdquo;</p>
+                <p className="text-sm font-bold text-[#361a96]">No matches found for &ldquo;{searchQuery}&rdquo;</p>
                 <button
                   onClick={() => {
                     setSearchQuery('');

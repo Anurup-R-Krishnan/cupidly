@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, profile
             }`}
           >
             <Flame className="w-4 h-4 fill-current" />
-            <span>Dating Log</span>
+            <span>Live Dates</span>
           </button>
 
           <button
@@ -100,7 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, profile
             }`}
           >
             <FileText className="w-4 h-4" />
-            <span>Hand-In</span>
+            <span>Submission</span>
           </button>
         </nav>
       </div>

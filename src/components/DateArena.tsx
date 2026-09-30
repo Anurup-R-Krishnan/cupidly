@@ -158,7 +158,7 @@ export const DateArena: React.FC<DateArenaProps> = ({
               Watch the date unfold
             </h2>
             <p className="text-xs sm:text-sm text-white/80 max-w-2xl leading-relaxed mt-1">
-              Two agents grab drinks on their person&apos;s behalf. They talk in real voices, test for dealbreakers, and confess what they&apos;re actually thinking in private.
+              Two agents meet for drinks. They talk in their real voices, test dealbreakers, and confess what they think in private.
             </p>
           </div>
 
@@ -318,7 +318,7 @@ export const DateArena: React.FC<DateArenaProps> = ({
                 title="Watch the two avatars swipe and meet again"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Replay Match</span>
+                <span>Replay Intro</span>
               </button>
             )}
           </div>
@@ -402,7 +402,7 @@ export const DateArena: React.FC<DateArenaProps> = ({
                 <div className="flex items-center gap-2">
                   <Wine className="w-4 h-4 text-[#5f2dfe]" />
                   <span className="font-heading font-black text-xl text-[#361a96]">
-                    Table Conversation Stream
+                    Table Conversation
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs font-bold">
@@ -468,7 +468,7 @@ export const DateArena: React.FC<DateArenaProps> = ({
                                 : 'bg-[#fff5fc] border-[#ff7dec]/60 text-[#361a96] mr-2'
                             }`}
                           >
-                            <span className="text-sm shrink-0">💭</span>
+                            <Sparkles className="w-4 h-4 shrink-0 text-[#5f2dfe] mt-0.5" />
                             <div className="space-y-0.5">
                               <span className="text-[10px] uppercase font-black tracking-wider text-[#5f2dfe] block">
                                 What {turn.speakerName} thought in private:
@@ -494,7 +494,7 @@ export const DateArena: React.FC<DateArenaProps> = ({
                 {isPlaying && visibleTurnsCount < dateResult.turns.length && (
                   <div className="flex items-center gap-2 text-xs font-bold text-[#5f2dfe] pl-3 py-2">
                     <span className="h-2 w-2 rounded-full bg-[#5f2dfe] animate-ping" />
-                    <span>Agent is replying...</span>
+                    <span>Replying...</span>
                   </div>
                 )}
 
@@ -512,10 +512,10 @@ export const DateArena: React.FC<DateArenaProps> = ({
             <Wine className="w-8 h-8" />
           </div>
           <h4 className="text-2xl sm:text-3xl font-heading font-black text-[#361a96]">
-            {agentA.name} and {agentB.name} are ready to meet
+            {agentA.name} and {agentB.name} haven&apos;t talked yet
           </h4>
           <p className="text-xs sm:text-sm font-semibold text-[#666666] max-w-md leading-relaxed">
-            Hit &ldquo;Start Date&rdquo; to watch the meeting animation and follow their 8-turn conversation with live chemistry updates.
+            Start the date to watch their first impression, awkward moments, and final verdict.
           </p>
           <button
             onClick={handleLaunchDate}
@@ -551,7 +551,7 @@ export const DateArena: React.FC<DateArenaProps> = ({
             ) : (
               <span className="px-4 py-2 rounded-full bg-[#00fcfd] text-[#361a96] text-xs font-black flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                <span>Clean run · No red flags</span>
+                <span>No dealbreakers hit · Both felt comfortable</span>
               </span>
             )}
           </div>
@@ -559,21 +559,21 @@ export const DateArena: React.FC<DateArenaProps> = ({
           {}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-[#2b147d] p-5 rounded-[32px] border-2 border-white/10">
-              <span className="text-xs font-black uppercase text-[#00fcfd] block">VALUES &amp; OUTLOOK</span>
+              <span className="text-xs font-black uppercase text-[#00fcfd] block">VALUES &amp; GOALS</span>
               <span className="text-3xl font-black text-white mt-1 block">{dateResult.valuesAlignment}%</span>
-              <span className="text-xs text-white/70">Shared ambitions &amp; priorities</span>
+              <span className="text-xs text-white/70">Ambition, priorities, long-term plans</span>
             </div>
 
             <div className="bg-[#2b147d] p-5 rounded-[32px] border-2 border-white/10">
-              <span className="text-xs font-black uppercase text-[#ff7dec] block">WEEKEND RHYTHMS</span>
+              <span className="text-xs font-black uppercase text-[#ff7dec] block">WEEKEND HABITS</span>
               <span className="text-3xl font-black text-white mt-1 block">{dateResult.lifestyleCadence}%</span>
-              <span className="text-xs text-white/70">How downtime aligns</span>
+              <span className="text-xs text-white/70">How downtime and routines match</span>
             </div>
 
             <div className="bg-[#2b147d] p-5 rounded-[32px] border-2 border-white/10">
-              <span className="text-xs font-black uppercase text-[#00fcfd] block">BANTER &amp; FLOW</span>
+              <span className="text-xs font-black uppercase text-[#00fcfd] block">CONVERSATION FLOW</span>
               <span className="text-3xl font-black text-white mt-1 block">{dateResult.conversationalFlow}%</span>
-              <span className="text-xs text-white/70">Effortless spark &amp; dialogue</span>
+              <span className="text-xs text-white/70">Natural banter, pacing, and ease</span>
             </div>
           </div>
 

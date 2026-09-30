@@ -67,10 +67,10 @@ export const DatingLog: React.FC<DatingLogProps> = ({
             <span>Turn {visibleTurnsCount} of {turns.length}</span>
           </div>
           <h3 className="font-heading font-black text-2xl sm:text-3xl text-[#361a96] mt-1 break-words">
-            Live Compatibility Log
+            Live Date Transcript
           </h3>
           <p className="text-xs font-medium text-[#666666] mt-0.5">
-            Watch chemistry shift after every sentence, boundary test, and private reaction.
+            Watch chemistry shift in real time across 8 rounds of conversation.
           </p>
         </div>
 
@@ -112,7 +112,7 @@ export const DatingLog: React.FC<DatingLogProps> = ({
               VIBE
             </span>
             <span className="text-xs sm:text-sm font-black text-white capitalize block mt-0.5 whitespace-nowrap">
-              {currentScore >= 80 ? 'Electric Spark' : currentScore >= 65 ? 'High Chemistry' : currentScore >= 50 ? 'Steady Vibe' : 'Friction'}
+              {currentScore >= 80 ? 'Strong spark' : currentScore >= 65 ? 'Good banter' : currentScore >= 50 ? 'Polite talk' : 'Awkward silence'}
             </span>
           </div>
         </div>
@@ -217,7 +217,7 @@ export const DatingLog: React.FC<DatingLogProps> = ({
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>{visibleTurnsCount >= turns.length ? 'Replay Log' : 'Play Live'}</span>
+                <span>{visibleTurnsCount >= turns.length ? 'Replay Date' : 'Play Date'}</span>
               </>
             )}
           </button>
@@ -281,7 +281,7 @@ export const DatingLog: React.FC<DatingLogProps> = ({
             />
             <span className="flex items-center gap-1">
               <Brain className="w-3.5 h-3.5 text-[#5f2dfe]" />
-              <span>Show What They Think</span>
+              <span>Private Thoughts</span>
             </span>
           </label>
         </div>
@@ -419,8 +419,8 @@ export const DatingLog: React.FC<DatingLogProps> = ({
             </h4>
             <p className="text-xs text-white/80">
               {dateResult.dealbreakerTriggered
-                ? 'Friction noted in lifestyle rhythms, but authentic mutual interest remained grounded.'
-                : 'Zero dealbreakers detected. Effortless conversational rhythm and shared boundaries.'}
+                ? 'Clashed slightly on schedules, but the mutual interest was real.'
+                : 'Zero red flags. Natural conversation flow and shared values.'}
             </p>
           </div>
 

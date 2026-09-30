@@ -110,7 +110,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSelect, onD
             className="py-3 px-3 bg-[#00fcfd] hover:bg-[#33fdfe] text-[#361a96] font-black rounded-full text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-md"
           >
             <Flame className="w-3.5 h-3.5 fill-current" />
-            <span>Go on date</span>
+            <span>Start Date</span>
           </button>
         </div>
       </div>
