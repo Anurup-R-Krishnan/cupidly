@@ -102,13 +102,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   <span>LinkedIn Profile</span>
                 </a>
                 <a
-                  href={profile.instagramUrl}
+                  href={`https://www.picuki.com/profile/${profile.instagramUrl.replace(/.*instagram\.com\/([^/?#]+).*/,'$1').replace(/^@/,'')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-xs text-[#361a96] bg-[#ff7dec] font-bold px-3.5 py-1.5 rounded-full hover:bg-white transition-colors shrink-0"
+                  title="View on Picuki (no login needed)"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Instagram Profile</span>
+                  <span>Instagram ↗ Picuki</span>
+                </a>
+                <a
+                  href={`https://imginn.com/${profile.instagramUrl.replace(/.*instagram\.com\/([^/?#]+).*/,'$1').replace(/^@/,'')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-white/80 bg-white/10 font-bold px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors shrink-0"
+                  title="View on Imginn (no login needed)"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Imginn</span>
                 </a>
                 <span className="text-xs text-white/70 font-semibold truncate">
                   Voice: {profile.communicationStyle}

@@ -176,65 +176,122 @@ export async function scrapeInstagram(page: Page, url: string, imgDir?: string, 
 export async function scrapeInstagramHTTP(url: string): Promise<RawInstagram> {
   const handle = handleFromInstagram(url);
   const out: RawInstagram = { url, ok: false, handle, isPrivate: false, name: '', bio: '', stats: '', externalLinks: [], avatar: '', posts: [] };
+
+  const sessionId = process.env.IG_SESSIONID;
+  const commonHeaders: Record<string, string> = {
+    'x-ig-app-id': '936619743392459',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': '*/*',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Referer': `https://www.instagram.com/${handle}/`,
+    'Origin': 'https://www.instagram.com',
+  };
+  // attach session cookie if available — this is required for Instagram to return real data
+  if (sessionId) commonHeaders['Cookie'] = `sessionid=${sessionId}`;
+
+  const tryParseUser = (u: any) => {
+    if (!u) return false;
+    out.name = u.full_name || '';
+    out.bio = u.biography || '';
+    out.avatar = u.profile_pic_url_hd || u.profile_pic_url || '';
+    out.isPrivate = !!u.is_private;
+    const followers = u.edge_followed_by?.count ?? u.follower_count ?? 0;
+    const following = u.edge_follow?.count ?? u.following_count ?? 0;
+    const postCount = u.edge_owner_to_timeline_media?.count ?? u.media_count ?? 0;
+    out.stats = `${postCount} posts | ${followers} followers | ${following} following`;
+    out.externalLinks = u.external_url ? [u.external_url] : [];
+    const edges = u.edge_owner_to_timeline_media?.edges || [];
+    out.posts = edges.slice(0, 9).map((e: any) => ({
+      url: `https://www.instagram.com/p/${e.node?.shortcode}/`,
+      caption: e.node?.edge_media_to_caption?.edges?.[0]?.node?.text || '',
+      alt: e.node?.accessibility_caption || '',
+      image: e.node?.display_url || '',
+      date: e.node?.taken_at_timestamp ? new Date(e.node.taken_at_timestamp * 1000).toISOString() : '',
+    }));
+    out.ok = out.bio.length > 0 || out.posts.length > 0;
+    return out.ok;
+  };
+
+  // Attempt 1: web_profile_info (needs sessionid for most accounts)
   try {
-    const res = await fetch(`https://www.instagram.com/api/v1/users/web_profile_info/?username=${handle}`, {
-      headers: {
-        'x-ig-app-id': '936619743392459',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': '*/*',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-    });
+    const res = await fetch(
+      `https://www.instagram.com/api/v1/users/web_profile_info/?username=${handle}`,
+      { headers: commonHeaders },
+    );
     if (res.ok) {
       const data = await res.json();
-      const u = data?.data?.user;
-      if (u) {
-        out.name = u.full_name || '';
-        out.bio = u.biography || '';
-        out.avatar = u.profile_pic_url_hd || u.profile_pic_url || '';
-        out.isPrivate = !!u.is_private;
-        out.stats = `${u.edge_owner_to_timeline_media?.count || 0} posts | ${u.edge_followed_by?.count || 0} followers`;
-        out.externalLinks = u.external_url ? [u.external_url] : [];
-        const edges = u.edge_owner_to_timeline_media?.edges || [];
-        out.posts = edges.slice(0, 9).map((e: any) => ({
-          url: `https://www.instagram.com/p/${e.node?.shortcode}/`,
-          caption: e.node?.edge_media_to_caption?.edges?.[0]?.node?.text || '',
-          alt: e.node?.accessibility_caption || '',
-          image: e.node?.display_url || '',
-          date: e.node?.taken_at_timestamp ? new Date(e.node.taken_at_timestamp * 1000).toISOString() : '',
-        }));
-        out.ok = out.bio.length > 0 || out.posts.length > 0;
-        return out;
-      }
+      if (tryParseUser(data?.data?.user)) return out;
+    } else if (res.status === 401 && !sessionId) {
+      out.error = 'Instagram requires authentication. Add IG_SESSIONID to your .env or Vercel environment variables.';
+    } else {
+      out.error = `Instagram API returned ${res.status}`;
     }
   } catch (err: any) {
     out.error = String(err?.message || err);
   }
+
+  // Attempt 2: legacy /__a/1 JSON endpoint (sometimes works without session)
+  try {
+    const res2 = await fetch(
+      `https://www.instagram.com/${handle}/?__a=1&__d=dis`,
+      { headers: { ...commonHeaders, 'Accept': 'application/json' } },
+    );
+    if (res2.ok) {
+      const data2 = await res2.json();
+      const u2 = data2?.graphql?.user || data2?.data?.user;
+      if (tryParseUser(u2)) return out;
+    }
+  } catch { /* silently fall through */ }
+
+  if (!out.error) out.error = 'Could not read Instagram profile. Set IG_SESSIONID in your environment for reliable scraping.';
   return out;
 }
 
 export async function scrapeLinkedInHTTP(url: string): Promise<RawLinkedIn> {
   const out: RawLinkedIn = { url, ok: false, name: '', headline: '', location: '', text: '', experience: '', posts: '' };
+  const liAt = process.env.LI_AT;
+  const headers: Record<string, string> = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+  if (liAt) headers['Cookie'] = `li_at=${liAt}`;
+
   try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-      },
-    });
+    const res = await fetch(url, { headers });
     const html = await res.text();
+
+    // if redirected to login page, flag it clearly
+    if (res.url.includes('linkedin.com/login') || res.url.includes('authwall')) {
+      out.error = 'LinkedIn requires authentication. Add LI_AT cookie to your environment variables.';
+      return out;
+    }
+
     const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
     if (titleMatch) {
-      const parts = titleMatch[1].split(/[|-]/).map((p) => p.trim());
+      const parts = titleMatch[1].split(/[|\-–]/).map((p) => p.trim()).filter(Boolean);
       out.name = parts[0] || '';
       out.headline = parts[1] || '';
     }
-    const ogDesc = html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i) || html.match(/<meta\s+name="description"\s+content="([^"]+)"/i);
+    const ogDesc =
+      html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i) ||
+      html.match(/<meta\s+name="description"\s+content="([^"]+)"/i);
     if (ogDesc) {
       out.text = ogDesc[1];
-      if (!out.headline) out.headline = ogDesc[1].slice(0, 100);
+      if (!out.headline) out.headline = ogDesc[1].slice(0, 120);
+    }
+    // try to pull location from JSON-LD if present
+    const ldMatch = html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
+    if (ldMatch) {
+      try {
+        const ld = JSON.parse(ldMatch[1]);
+        if (ld.address?.addressLocality) out.location = ld.address.addressLocality;
+        if (!out.name && ld.name) out.name = ld.name;
+        if (!out.headline && ld.jobTitle) out.headline = ld.jobTitle;
+      } catch { /* ignore malformed JSON-LD */ }
     }
     out.ok = out.name.length > 0 || out.text.length > 0;
+    if (!out.ok) out.error = 'LinkedIn profile not publicly readable. Add LI_AT cookie for full access.';
   } catch (err: any) {
     out.error = String(err?.message || err);
   }
