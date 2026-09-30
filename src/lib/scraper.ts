@@ -313,55 +313,128 @@ export async function scrapeInstagramHTTP(url: string): Promise<RawInstagram> {
 }
 
 export async function scrapeLinkedInHTTP(url: string): Promise<RawLinkedIn> {
+  const slug = slugFromLinkedIn(url);
+  const canonicalUrl = `https://www.linkedin.com/in/${slug}/`;
   const out: RawLinkedIn = { url, ok: false, name: '', headline: '', location: '', text: '', experience: '', posts: '' };
-  const liAt = process.env.LI_AT;
-  const headers: Record<string, string> = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml',
-    'Accept-Language': 'en-US,en;q=0.9',
-  };
-  if (liAt) headers['Cookie'] = `li_at=${liAt}`;
+  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-  try {
-    const res = await fetch(url, { headers });
-    const html = await res.text();
-
-    // if redirected to login page, flag it clearly
-    if (res.url.includes('linkedin.com/login') || res.url.includes('authwall')) {
-      out.error = 'LinkedIn requires authentication. Add LI_AT cookie to your environment variables.';
-      return out;
+  /** Pull everything we can out of a LinkedIn HTML response */
+  const extractFromHTML = (html: string): boolean => {
+    // og:title -> "Name | Headline | LinkedIn" or "Name - Headline"
+    const ogTitle = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i)?.[1] || '';
+    if (ogTitle) {
+      const parts = ogTitle.replace(/\s*\|?\s*LinkedIn\s*$/i, '').split(/\s*[|\u2013\-]\s*/).map(p => p.trim()).filter(Boolean);
+      if (!out.name && parts[0]) out.name = parts[0];
+      if (!out.headline && parts[1]) out.headline = parts[1];
     }
-
-    const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
-    if (titleMatch) {
-      const parts = titleMatch[1].split(/[|\-–]/).map((p) => p.trim()).filter(Boolean);
-      out.name = parts[0] || '';
-      out.headline = parts[1] || '';
+    // <title> fallback
+    if (!out.name) {
+      const tp = (html.match(/<title>([^<]+)<\/title>/i)?.[1] || '')
+        .replace(/\s*\|?\s*LinkedIn\s*$/i, '').split(/\s*[|\u2013\-]\s*/).map(p => p.trim()).filter(Boolean);
+      if (tp[0]) out.name = tp[0];
+      if (!out.headline && tp[1]) out.headline = tp[1];
     }
-    const ogDesc =
+    // og:description -> summary paragraph
+    const ogDesc = (
       html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i) ||
-      html.match(/<meta\s+name="description"\s+content="([^"]+)"/i);
+      html.match(/<meta\s+name="description"\s+content="([^"]+)"/i)
+    )?.[1] || '';
     if (ogDesc) {
-      out.text = ogDesc[1];
-      if (!out.headline) out.headline = ogDesc[1].slice(0, 120);
+      // LinkedIn prefixes "Name's " — strip it
+      out.text = ogDesc.replace(/^[A-Z][^']*'s\s+/i, '').trim() || ogDesc;
+      if (!out.headline) out.headline = out.text.slice(0, 140);
     }
-    // try to pull location from JSON-LD if present
-    const ldMatch = html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
-    if (ldMatch) {
+    // ALL JSON-LD blocks (LinkedIn often has several)
+    for (const m of html.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)) {
       try {
-        const ld = JSON.parse(ldMatch[1]);
-        if (ld.address?.addressLocality) out.location = ld.address.addressLocality;
-        if (!out.name && ld.name) out.name = ld.name;
-        if (!out.headline && ld.jobTitle) out.headline = ld.jobTitle;
-      } catch { /* ignore malformed JSON-LD */ }
+        const entries: any[] = [].concat(JSON.parse(m[1]));
+        for (const ld of entries) {
+          if (!out.name && ld.name) out.name = String(ld.name).trim();
+          if (!out.headline && ld.jobTitle) out.headline = String(ld.jobTitle).trim();
+          if (!out.location && ld.address?.addressLocality) out.location = ld.address.addressLocality;
+          // current employer
+          const employers = (ld.worksFor || []).map((w: any) => w.name).filter(Boolean).join(', ');
+          if (employers) out.experience = (out.experience ? out.experience + ' | ' : '') + employers;
+          // education / alumni
+          const alums = (ld.alumniOf || []).map((a: any) => a.name).filter(Boolean).join(', ');
+          if (alums) out.experience = (out.experience ? out.experience + ' | ' : '') + alums;
+          // interaction stats (followers)
+          if (ld.interactionStatistic) {
+            const stats: any[] = [].concat(ld.interactionStatistic);
+            for (const s of stats) {
+              if (s.userInteractionCount && s.interactionType?.includes('Follow')) {
+                if (!out.posts) out.posts = `${s.userInteractionCount} followers`;
+              }
+            }
+          }
+        }
+      } catch { /* malformed JSON-LD */ }
     }
-    out.ok = out.name.length > 0 || out.text.length > 0;
-    if (!out.ok) out.error = 'LinkedIn profile not publicly readable. Add LI_AT cookie for full access.';
-  } catch (err: any) {
-    out.error = String(err?.message || err);
+    out.ok = out.name.length > 0 || out.text.length > 80;
+    return out.ok;
+  };
+
+  // ── Attempt 1: direct LinkedIn (with li_at cookie if available) ────────────
+  const liAt = process.env.LI_AT;
+  try {
+    const h: Record<string, string> = {
+      'User-Agent': UA,
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-Fetch-Site': 'none', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-User': '?1',
+    };
+    if (liAt) h['Cookie'] = `li_at=${liAt}`;
+    const res = await fetch(canonicalUrl, { headers: h, redirect: 'follow' });
+    const html = await res.text();
+    const landed = res.url;
+    if (!landed.includes('/login') && !landed.includes('authwall') && !html.includes('authwall-join-form')) {
+      if (extractFromHTML(html)) return out;
+    } else if (!liAt) {
+      out.error = 'LinkedIn hit authwall. Add LI_AT cookie to .env or Vercel env vars for full profile data.';
+    }
+  } catch (e: any) { out.error = String(e?.message || e); }
+
+  // ── Attempt 2: Google cache (often has the full unauthenticated HTML) ──────
+  try {
+    const cached = await fetch(
+      `https://webcache.googleusercontent.com/search?q=cache:${encodeURIComponent(canonicalUrl)}&hl=en`,
+      { headers: { 'User-Agent': UA, 'Accept': 'text/html', 'Referer': 'https://www.google.com/' } },
+    );
+    if (cached.ok) {
+      const html = await cached.text();
+      if (!html.includes('did not match any documents') && extractFromHTML(html)) return out;
+    }
+  } catch { /* fall through */ }
+
+  // ── Attempt 3: Wayback Machine latest snapshot ────────────────────────────
+  try {
+    const avail = await fetch(
+      `https://archive.org/wayback/available?url=${encodeURIComponent(canonicalUrl)}`,
+      { headers: { 'Accept': 'application/json' } },
+    );
+    if (avail.ok) {
+      const snap: string | undefined = (await avail.json())?.archived_snapshots?.closest?.url;
+      if (snap) {
+        const r = await fetch(snap, { headers: { 'User-Agent': UA, 'Accept': 'text/html' } });
+        if (r.ok && extractFromHTML(await r.text())) return out;
+      }
+    }
+  } catch { /* fall through */ }
+
+  // ── Attempt 4: LinkedIn bot UA — sometimes returns more open HTML ──────────
+  try {
+    const r4 = await fetch(canonicalUrl, {
+      headers: { 'User-Agent': 'LinkedInBot/1.0 (compatible; +http://www.linkedin.com/)', 'Accept': 'text/html' },
+    });
+    if (r4.ok) extractFromHTML(await r4.text());
+  } catch { /* fall through */ }
+
+  if (!out.ok && !out.error) {
+    out.error = `LinkedIn profile not publicly readable (${slug}). Add LI_AT to your environment for full data.`;
   }
   return out;
 }
+
 
 export async function scrapePersonHTTP(id: string, linkedinUrl: string, instagramUrl: string): Promise<RawPerson> {
   const [linkedin, instagram] = await Promise.all([
