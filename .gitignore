@@ -112,4 +112,19 @@ desktop.ini
 data/raw/
 data/img/
 data/custom-profiles.json
+data/dates.local.json
+
+# bun
+.bun/
+bun.lockb
+
+# playwright
+/playwright/.auth/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# vercel
 .vercel
+.output/

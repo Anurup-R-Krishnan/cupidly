@@ -243,6 +243,71 @@ export async function scrapeInstagramHTTP(url: string): Promise<RawInstagram> {
     }
   } catch { /* silently fall through */ }
 
+  // Attempt 3: scrape Picuki (public viewer, no login needed)
+  try {
+    const picukiRes = await fetch(`https://www.picuki.com/profile/${handle}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+    if (picukiRes.ok) {
+      const html = await picukiRes.text();
+      // name
+      const nameM = html.match(/<h1[^>]*class="[^"]*profile-name[^"]*"[^>]*>([^<]+)</);
+      if (nameM) out.name = nameM[1].trim();
+      // bio
+      const bioM = html.match(/<div[^>]*class="[^"]*profile-description[^"]*"[^>]*>([\/s\S]*?)<\/div>/i);
+      if (bioM) out.bio = bioM[1].replace(/<[^>]+>/g, '').trim();
+      // stats (posts / followers / following)
+      const statsM = [...html.matchAll(/<span[^>]*class="[^"]*counter[^"]*"[^>]*>([^<]+)<\/span>/g)];
+      if (statsM.length >= 3) {
+        out.stats = `${statsM[0][1].trim()} posts | ${statsM[1][1].trim()} followers | ${statsM[2][1].trim()} following`;
+      }
+      // avatar
+      const avatarM = html.match(/<img[^>]*class="[^"]*profile-avatar[^"]*"[^>]*src="([^"]+)"/);
+      if (avatarM) out.avatar = avatarM[1];
+      // posts — grab captions from post boxes
+      const postMatches = [...html.matchAll(/<div[^>]*class="[^"]*photo-description[^"]*"[^>]*>([\/s\S]*?)<\/div>/gi)];
+      const postLinks = [...html.matchAll(/href="(https:\/\/www\.picuki\.com\/media\/[^"]+)"/g)];
+      out.posts = postMatches.slice(0, 9).map((m, i) => ({
+        url: postLinks[i]?.[1] || `https://www.picuki.com/profile/${handle}`,
+        caption: m[1].replace(/<[^>]+>/g, '').trim(),
+        alt: '',
+        image: '',
+      }));
+      out.ok = out.bio.length > 0 || out.name.length > 0 || out.posts.length > 0;
+      if (out.ok) return out;
+    }
+  } catch { /* silently fall through */ }
+
+  // Attempt 4: scrape Imginn (public viewer, no login needed)
+  try {
+    const imginnRes = await fetch(`https://imginn.com/${handle}/`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+    if (imginnRes.ok) {
+      const html = await imginnRes.text();
+      const nameM = html.match(/<h1[^>]*>([^<]+)<\/h1>/);
+      if (nameM) out.name = nameM[1].trim();
+      const bioM = html.match(/<p[^>]*class="[^"]*desc[^"]*"[^>]*>([\/s\S]*?)<\/p>/i);
+      if (bioM) out.bio = bioM[1].replace(/<[^>]+>/g, '').trim();
+      const counters = [...html.matchAll(/<span[^>]*class="[^"]*num[^"]*"[^>]*>([^<]+)<\/span>/g)];
+      if (counters.length >= 3) {
+        out.stats = `${counters[0][1].trim()} posts | ${counters[1][1].trim()} followers | ${counters[2][1].trim()} following`;
+      }
+      const imgM = html.match(/<img[^>]*class="[^"]*avatar[^"]*"[^>]*src="([^"]+)"/);
+      if (imgM) out.avatar = imgM[1];
+      out.ok = out.bio.length > 0 || out.name.length > 0;
+      if (out.ok) return out;
+    }
+  } catch { /* silently fall through */ }
+
   if (!out.error) out.error = 'Could not read Instagram profile. Set IG_SESSIONID in your environment for reliable scraping.';
   return out;
 }
