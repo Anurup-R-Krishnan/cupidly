@@ -1,4 +1,4 @@
-import { openSession, scrapePerson, type RawPerson, handleFromInstagram, slugFromLinkedIn } from '../src/lib/scraper';
+import { openSession, scrapePerson, scrapePersonHTTP, type RawPerson, handleFromInstagram, slugFromLinkedIn } from '../src/lib/scraper';
 import type { BrowserContext } from 'playwright-core';
 
 let ctxPromise: Promise<BrowserContext> | null = null;
@@ -18,10 +18,19 @@ export function scrapeQueued(id: string, li: string, ig: string, onStatus?: (s: 
   onStatus?.(`queued (${queueLength} ahead)`);
   const job = chain.then(async () => {
     try {
-      onStatus?.('opening logged-in browser session');
-      const ctx = await getCtx();
-      onStatus?.('reading LinkedIn + Instagram');
-      return await scrapePerson(ctx, id, li, ig, 'data/img');
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        onStatus?.('reading public Instagram & LinkedIn');
+        return await scrapePersonHTTP(id, li, ig);
+      }
+      try {
+        onStatus?.('opening browser session');
+        const ctx = await getCtx();
+        onStatus?.('reading LinkedIn + Instagram');
+        return await scrapePerson(ctx, id, li, ig, 'data/img');
+      } catch (browserErr) {
+        onStatus?.('falling back to public endpoints');
+        return await scrapePersonHTTP(id, li, ig);
+      }
     } finally { queueLength--; }
   });
   chain = job.catch(() => {});

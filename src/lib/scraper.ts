@@ -173,6 +173,82 @@ export async function scrapeInstagram(page: Page, url: string, imgDir?: string, 
   return out;
 }
 
+export async function scrapeInstagramHTTP(url: string): Promise<RawInstagram> {
+  const handle = handleFromInstagram(url);
+  const out: RawInstagram = { url, ok: false, handle, isPrivate: false, name: '', bio: '', stats: '', externalLinks: [], avatar: '', posts: [] };
+  try {
+    const res = await fetch(`https://www.instagram.com/api/v1/users/web_profile_info/?username=${handle}`, {
+      headers: {
+        'x-ig-app-id': '936619743392459',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const u = data?.data?.user;
+      if (u) {
+        out.name = u.full_name || '';
+        out.bio = u.biography || '';
+        out.avatar = u.profile_pic_url_hd || u.profile_pic_url || '';
+        out.isPrivate = !!u.is_private;
+        out.stats = `${u.edge_owner_to_timeline_media?.count || 0} posts | ${u.edge_followed_by?.count || 0} followers`;
+        out.externalLinks = u.external_url ? [u.external_url] : [];
+        const edges = u.edge_owner_to_timeline_media?.edges || [];
+        out.posts = edges.slice(0, 9).map((e: any) => ({
+          url: `https://www.instagram.com/p/${e.node?.shortcode}/`,
+          caption: e.node?.edge_media_to_caption?.edges?.[0]?.node?.text || '',
+          alt: e.node?.accessibility_caption || '',
+          image: e.node?.display_url || '',
+          date: e.node?.taken_at_timestamp ? new Date(e.node.taken_at_timestamp * 1000).toISOString() : '',
+        }));
+        out.ok = out.bio.length > 0 || out.posts.length > 0;
+        return out;
+      }
+    }
+  } catch (err: any) {
+    out.error = String(err?.message || err);
+  }
+  return out;
+}
+
+export async function scrapeLinkedInHTTP(url: string): Promise<RawLinkedIn> {
+  const out: RawLinkedIn = { url, ok: false, name: '', headline: '', location: '', text: '', experience: '', posts: '' };
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+      },
+    });
+    const html = await res.text();
+    const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+    if (titleMatch) {
+      const parts = titleMatch[1].split(/[|-]/).map((p) => p.trim());
+      out.name = parts[0] || '';
+      out.headline = parts[1] || '';
+    }
+    const ogDesc = html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i) || html.match(/<meta\s+name="description"\s+content="([^"]+)"/i);
+    if (ogDesc) {
+      out.text = ogDesc[1];
+      if (!out.headline) out.headline = ogDesc[1].slice(0, 100);
+    }
+    out.ok = out.name.length > 0 || out.text.length > 0;
+  } catch (err: any) {
+    out.error = String(err?.message || err);
+  }
+  return out;
+}
+
+export async function scrapePersonHTTP(id: string, linkedinUrl: string, instagramUrl: string): Promise<RawPerson> {
+  const [linkedin, instagram] = await Promise.all([
+    scrapeLinkedInHTTP(linkedinUrl),
+    scrapeInstagramHTTP(instagramUrl),
+  ]);
+  return { id, linkedin, instagram, scrapedAt: new Date().toISOString() };
+}
+
 export async function scrapePerson(ctx: BrowserContext, id: string, linkedinUrl: string, instagramUrl: string, imgRoot?: string): Promise<RawPerson> {
   const page = await ctx.newPage();
   try {
