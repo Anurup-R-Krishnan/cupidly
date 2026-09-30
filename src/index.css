@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg: #ff7dec;
+    --color-bg-secondary: #361a96;
+    --color-primary: #5f2dfe;
+    --color-secondary: #00fcfd;
+    --color-text: #361a96;
+    --color-text-secondary: #666666;
+    --color-border: #e5e5e5;
+    --font-heading: "Space Grotesk", sans-serif;
+    --font-body: "Plus Jakarta Sans", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: var(--font-heading);
+    font-weight: 800;
+  }
+}
+
+.gamily-card {
+  background-color: #361a96;
+  color: #ffffff;
+  border-radius: 48px;
+  box-shadow: 0 12px 36px -8px rgba(54, 26, 150, 0.4);
+}
+
+.gamily-card-light {
+  background-color: #ffffff;
+  color: #361a96;
+  border-radius: 48px;
+  border: 3px solid #361a96;
+}
+
+.gamily-btn-primary {
+  background-color: #5f2dfe;
+  color: #ffffff;
+  border-radius: 9999px;
+  font-weight: 800;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.gamily-btn-primary:hover {
+  background-color: #4b1ecc;
+  transform: translateY(-2px) scale(1.02);
+}
+
+.gamily-btn-cyan {
+  background-color: #00fcfd;
+  color: #361a96;
+  border-radius: 9999px;
+  font-weight: 800;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.gamily-btn-cyan:hover {
+  background-color: #33fdfe;
+  transform: translateY(-2px) scale(1.02);
+}
+
+@keyframes swipeInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-120px) rotate(-14deg) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(10px) rotate(3deg) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes swipeInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(120px) rotate(14deg) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-10px) rotate(-3deg) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes shockwave {
+  0% {
+    transform: scale(0.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes heartPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.22);
+  }
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+.animate-swipe-left {
+  animation: swipeInLeft 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.animate-swipe-right {
+  animation: swipeInRight 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.animate-shockwave {
+  animation: shockwave 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-heart-pulse {
+  animation: heartPulse 1.2s ease-in-out infinite;
+}
+
+.animate-particle-1 {
+  animation: floatParticle 1.8s ease-out infinite;
+}
+
+.animate-particle-2 {
+  animation: floatParticle 2.2s ease-out infinite 0.4s;
+}
+
+.animate-particle-3 {
+  animation: floatParticle 1.9s ease-out infinite 0.8s;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #ff7dec;
+}
+::-webkit-scrollbar-thumb {
+  background: #361a96;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5f2dfe;
+}

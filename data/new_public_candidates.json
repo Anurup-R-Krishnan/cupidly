@@ -1,0 +1,74 @@
+[
+  {
+    "id": "garyvee",
+    "name": "Gary Vaynerchuk",
+    "linkedinUrl": "https://www.linkedin.com/in/garyvaynerchuk/",
+    "instagramUrl": "https://www.instagram.com/garyvee/"
+  },
+  {
+    "id": "kevin",
+    "name": "Kevin Systrom",
+    "linkedinUrl": "https://www.linkedin.com/in/kevinsystrom/",
+    "instagramUrl": "https://www.instagram.com/kevin/"
+  },
+  {
+    "id": "mikeyk",
+    "name": "Mike Krieger",
+    "linkedinUrl": "https://www.linkedin.com/in/mikekrieger/",
+    "instagramUrl": "https://www.instagram.com/mikeyk/"
+  },
+  {
+    "id": "sundarpichai",
+    "name": "Sundar Pichai",
+    "linkedinUrl": "https://www.linkedin.com/in/sundarpichai/",
+    "instagramUrl": "https://www.instagram.com/sundarpichai/"
+  },
+  {
+    "id": "thisisbillgates",
+    "name": "Bill Gates",
+    "linkedinUrl": "https://www.linkedin.com/in/williamhgates/",
+    "instagramUrl": "https://www.instagram.com/thisisbillgates/"
+  },
+  {
+    "id": "richardbranson",
+    "name": "Richard Branson",
+    "linkedinUrl": "https://www.linkedin.com/in/rbranson/",
+    "instagramUrl": "https://www.instagram.com/richardbranson/"
+  },
+  {
+    "id": "sarablakely",
+    "name": "Sara Blakely",
+    "linkedinUrl": "https://www.linkedin.com/in/sarablakely/",
+    "instagramUrl": "https://www.instagram.com/sarablakely/"
+  },
+  {
+    "id": "ariannahuff",
+    "name": "Arianna Huffington",
+    "linkedinUrl": "https://www.linkedin.com/in/ariannahuffington/",
+    "instagramUrl": "https://www.instagram.com/ariannahuff/"
+  },
+  {
+    "id": "guykawasaki",
+    "name": "Guy Kawasaki",
+    "linkedinUrl": "https://www.linkedin.com/in/guykawasaki/",
+    "instagramUrl": "https://www.instagram.com/guykawasaki/"
+  },
+  {
+    "id": "davemorin",
+    "name": "Dave Morin",
+    "linkedinUrl": "https://www.linkedin.com/in/davemorin/",
+    "instagramUrl": "https://www.instagram.com/davemorin/"
+  },
+  {
+    "id": "kevinrose",
+    "name": "Kevin Rose",
+    "linkedinUrl": "https://www.linkedin.com/in/kevinrose/",
+    "instagramUrl": "https://www.instagram.com/kevinrose/"
+  },
+  {
+    "id": "sacca",
+    "name": "Chris Sacca",
+    "linkedinUrl": "https://www.linkedin.com/in/sacca/",
+    "instagramUrl": "https://www.instagram.com/sacca/"
+  }
+]
